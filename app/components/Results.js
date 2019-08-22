@@ -1,13 +1,77 @@
 import React from 'react';
-import { battle } from './utils/api';
+import { battle } from '../utils/api';
 import {
   FaCompass,
   FaBriefcase,
   FaUsers,
   FaUserFriends,
-  FaCode,
   FaUser
 } from 'react-icons/fa';
+import Card from './Card';
+import PropTypes from 'prop-types';
+import Loading from './Loading';
+import Tooltip from './Tooltip';
+
+const styles = {
+  container: {
+    position: 'relative',
+    display: 'flex'
+  },
+  tooltip: {
+    boxSizing: 'border-box',
+    position: 'absolute',
+    width: '160px',
+    bottom: '100%',
+    left: '50%',
+    marginLeft: '-80px',
+    borderRadius: '3px',
+    backgroundColor: 'hsla(0, 0%, 20%, 0.9)',
+    padding: '7px',
+    marginBottom: '5px',
+    color: '#fff',
+    textAlign: 'center',
+    fontSize: '14px'
+  }
+};
+
+function ProfileList({ profile }) {
+  return (
+    <ul className="card-list">
+      <li>
+        <FaUser color="rgb(239, 115, 115)" size={22} />
+        {profile.name}
+      </li>
+      {profile.location && (
+        <li>
+          <Tooltip text="User's location">
+            <FaCompass color="rgb(144, 115, 255)" size={22} />
+            {profile.location}
+          </Tooltip>
+        </li>
+      )}
+      {profile.company && (
+        <li>
+          <Tooltip text="User's company">
+            <FaBriefcase color="#795548" size={22} />
+            {profile.company}
+          </Tooltip>
+        </li>
+      )}
+      <li>
+        <FaUsers color="rgb(129, 125, 245)" size={22} />
+        {profile.followers.toLocaleString()} followres
+      </li>
+      <li>
+        <FaUserFriends color="rgb(64, 183, 95)" size={22} />
+        {profile.following.toLocaleString()} followres
+      </li>
+    </ul>
+  );
+}
+
+ProfileList.propTypes = {
+  profile: PropTypes.object.isRequired
+};
 
 export default class Results extends React.Component {
   constructor(props) {
@@ -22,7 +86,7 @@ export default class Results extends React.Component {
   }
 
   componentDidMount() {
-    const { playerOne, playerTwo } = this.props;
+    const { playerOne, playerTwo, onReset } = this.props;
 
     battle([playerOne, playerTwo])
       .then(players => {
@@ -42,103 +106,45 @@ export default class Results extends React.Component {
   }
   render() {
     const { winner, loser, error, loading } = this.state;
+    const { onReset } = this.props;
 
     if (loading) {
-      return <p>Loading...</p>;
+      return <Loading />;
     }
 
     if (error) {
       return <p className="center-text error">{error}</p>;
     }
     return (
-      <div className="grid space-around container-sm">
-        <div className="card bg-light">
-          <h4 className="header-lg center-text">
-            {winner.score === loser.score ? 'Tie' : 'Winner'}
-          </h4>
-          <img
-            src={winner.profile.avatar_url}
-            alt={`Avatar for ${winner.profile.login}`}
-            className="avatar"
-          />
-          <h4 className="center-text">
-            Score: {winner.score.toLocaleString()}
-          </h4>
-          <h2 className="center-text">
-            <a href={winner.profile.html_url} className="link">
-              {winner.profile.login}
-            </a>
-          </h2>
-          <ul className="card-list">
-            <li>
-              <FaUser color="rgb(239, 115, 115)" size={22} />
-              {winner.profile.name}
-            </li>
-            {winner.profile.location && (
-              <li>
-                <FaCompass color="rgb(144, 115, 255)" size={22} />
-                {winner.profile.location}
-              </li>
-            )}
-            {winner.profile.company && (
-              <li>
-                <FaBriefcase color="#795548" size={22} />
-                {winner.profile.company}
-              </li>
-            )}
-            <li>
-              <FaUsers color="rgb(129, 125, 245)" size={22} />
-              {winner.profile.followers.toLocaleString()} followres
-            </li>
-            <li>
-              <FaUserFriends color="rgb(64, 183, 95)" size={22} />
-              {winner.profile.following.toLocaleString()} followres
-            </li>
-          </ul>
+      <React.Fragment>
+        <div className="grid space-around container-sm">
+          <Card
+            header={winner.score === loser.score ? 'Tie' : 'Winner'}
+            subheader={`Score: ${winner.score.toLocaleString()}`}
+            avatar={winner.profile.avatar_url}
+            href={winner.profile.html_url}
+            name={winner.profile.login}>
+            <ProfileList profile={winner.profile} />
+          </Card>
+          <Card
+            header={winner.score === loser.score ? 'Tie' : 'Loser'}
+            subheader={`Score: ${loser.score.toLocaleString()}`}
+            avatar={loser.profile.avatar_url}
+            href={loser.profile.html_url}
+            name={loser.profile.login}>
+            <ProfileList profile={loser.profile} />
+          </Card>
         </div>
-        <div className="card bg-light">
-          <h4 className="header-lg center-text">
-            {winner.score === loser.score ? 'Tie' : 'Loser'}
-          </h4>
-          <img
-            src={loser.profile.avatar_url}
-            alt={`Avatar for ${loser.profile.login}`}
-            className="avatar"
-          />
-          <h4 className="center-text">Score: {loser.score.toLocaleString()}</h4>
-          <h2 className="center-text">
-            <a href={loser.profile.html_url} className="link">
-              {loser.profile.login}
-            </a>
-          </h2>
-          <ul className="card-list">
-            <li>
-              <FaUser color="rgb(239, 115, 115)" size={22} />
-              {loser.profile.name}
-            </li>
-            {loser.profile.location && (
-              <li>
-                <FaCompass color="rgb(144, 115, 255)" size={22} />
-                {loser.profile.location}
-              </li>
-            )}
-            {loser.profile.company && (
-              <li>
-                <FaBriefcase color="#795548" size={22} />
-                {loser.profile.company}
-              </li>
-            )}
-            <li>
-              <FaUsers color="rgb(129, 125, 245)" size={22} />
-              {loser.profile.followers.toLocaleString()} followres
-            </li>
-            <li>
-              <FaUserFriends color="rgb(64, 183, 95)" size={22} />
-              {loser.profile.following.toLocaleString()} followres
-            </li>
-          </ul>
-        </div>
-      </div>
+        <button className="btn dark-btn btn-space" onClick={onReset}>
+          Reset
+        </button>
+      </React.Fragment>
     );
   }
 }
+
+Results.propTypes = {
+  playerOne: PropTypes.string.isRequired,
+  playerTwo: PropTypes.string.isRequired,
+  onReset: PropTypes.func.isRequired
+};

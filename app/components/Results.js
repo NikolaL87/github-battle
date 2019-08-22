@@ -11,28 +11,8 @@ import Card from './Card';
 import PropTypes from 'prop-types';
 import Loading from './Loading';
 import Tooltip from './Tooltip';
-
-const styles = {
-  container: {
-    position: 'relative',
-    display: 'flex'
-  },
-  tooltip: {
-    boxSizing: 'border-box',
-    position: 'absolute',
-    width: '160px',
-    bottom: '100%',
-    left: '50%',
-    marginLeft: '-80px',
-    borderRadius: '3px',
-    backgroundColor: 'hsla(0, 0%, 20%, 0.9)',
-    padding: '7px',
-    marginBottom: '5px',
-    color: '#fff',
-    textAlign: 'center',
-    fontSize: '14px'
-  }
-};
+import queryString from 'query-string';
+import { Link } from 'react-router-dom';
 
 function ProfileList({ profile }) {
   return (
@@ -86,7 +66,9 @@ export default class Results extends React.Component {
   }
 
   componentDidMount() {
-    const { playerOne, playerTwo, onReset } = this.props;
+    const { playerOne, playerTwo } = queryString.parse(
+      this.props.location.search
+    );
 
     battle([playerOne, playerTwo])
       .then(players => {
@@ -109,7 +91,7 @@ export default class Results extends React.Component {
     const { onReset } = this.props;
 
     if (loading) {
-      return <Loading />;
+      return <Loading text="Battling" />;
     }
 
     if (error) {
@@ -123,7 +105,8 @@ export default class Results extends React.Component {
             subheader={`Score: ${winner.score.toLocaleString()}`}
             avatar={winner.profile.avatar_url}
             href={winner.profile.html_url}
-            name={winner.profile.login}>
+            name={winner.profile.login}
+          >
             <ProfileList profile={winner.profile} />
           </Card>
           <Card
@@ -131,20 +114,15 @@ export default class Results extends React.Component {
             subheader={`Score: ${loser.score.toLocaleString()}`}
             avatar={loser.profile.avatar_url}
             href={loser.profile.html_url}
-            name={loser.profile.login}>
+            name={loser.profile.login}
+          >
             <ProfileList profile={loser.profile} />
           </Card>
         </div>
-        <button className="btn dark-btn btn-space" onClick={onReset}>
+        <Link className="btn dark-btn btn-space" to="/battle">
           Reset
-        </button>
+        </Link>
       </React.Fragment>
     );
   }
 }
-
-Results.propTypes = {
-  playerOne: PropTypes.string.isRequired,
-  playerTwo: PropTypes.string.isRequired,
-  onReset: PropTypes.func.isRequired
-};
